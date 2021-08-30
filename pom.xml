@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.3</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>hms.tap.sbl</groupId>
+    <artifactId>sbl-dummy-server</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>sbl-dummy-server</name>
+    <description>SBL DUMMY SIM</description>
+    <properties>
+        <java.version>11</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spring.boot.version>2.5.3</spring.boot.version>
+        <maven.assembly.plugin.version>2.5.3</maven.assembly.plugin.version>
+        <jsw.assemble.dir>${project.build.directory}/generated-resources/appassembler/jsw/sbl-dummy-server</jsw.assemble.dir>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>hms.ch.qos.logback</groupId>
+            <artifactId>logback-extension</artifactId>
+            <version>0.1.3</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>spring-releases</id>
+            <name>Spring Releases</name>
+            <url>https://repo.spring.io/release</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+
+        <repository>
+            <id>archiva.internal</id>
+            <url>http://archiva.hsenidmobile.com/repository/internal/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-releases</id>
+            <name>Spring Releases</name>
+            <url>https://repo.spring.io/release</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>archiva.internal</id>
+            <url>http://archiva.hsenidmobile.com/repository/internal/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>hms.maven.plugins</groupId>
+                <artifactId>spring-profile-plugin</artifactId>
+                <version>1.0.7</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>merge-main-resources</goal>
+                            <goal>merge-test-resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*.yml</exclude>
+                        <exclude>**/*.xml</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>generate-jsw-scripts</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>generate-daemons</goal>
+                        </goals>
+                        <configuration>
+                            <repositoryLayout>flat</repositoryLayout>
+                            <configurationDirectory>conf</configurationDirectory>
+                            <daemons>
+                                <daemon>
+                                    <id>sbl-dummy-server</id>
+                                    <wrapperMainClass>org.tanukisoftware.wrapper.WrapperSimpleApp</wrapperMainClass>
+                                    <mainClass>hms.tap.sbl.sim.SblDummySimApplication</mainClass>
+                                    <commandLineArguments>
+                                        <commandLineArgument>start</commandLineArgument>
+                                    </commandLineArguments>
+                                    <platforms>
+                                        <platform>jsw</platform>
+                                    </platforms>
+                                    <generatorConfigurations>
+                                        <generatorConfiguration>
+                                            <generator>jsw</generator>
+                                            <configuration>
+                                                <property>
+                                                    <name>wrapper.java.additional.1</name>
+                                                    <value>-XX:MaxDirectMemorySize=256m</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.2</name>
+                                                    <value>-Xms128m</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.3</name>
+                                                    <value>-Xmx512m</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.4</name>
+                                                    <value>-Dreactor.ipc.netty.selectCount=50</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.5</name>
+                                                    <value>-Dreactor.ipc.netty.workerCount=100</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.6</name>
+                                                    <value>-XX:+UseCompressedClassPointers</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.7</name>
+                                                    <value>-XX:+UseCompressedOops</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.8</name>
+                                                    <value>-XX:+UseG1GC</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.9</name>
+                                                    <value>-XX:+UseStringDeduplication</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.10</name>
+                                                    <value>-Dio.netty.allocator.useCacheForAllThreads=false</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.java.additional.11</name>
+                                                    <value>-XX:+PrintGC</value>
+                                                </property>
+                                                <property>
+                                                    <name>configuration.directory.in.classpath.first</name>
+                                                    <value>conf</value>
+                                                </property>
+                                                <property>
+                                                    <name>set.default.REPO_DIR</name>
+                                                    <value>lib</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.logfile</name>
+                                                    <value>logs/wrapper.log</value>
+                                                </property>
+                                            </configuration>
+                                            <includes>
+                                                <include>linux-x86-64</include>
+                                            </includes>
+                                        </generatorConfiguration>
+                                    </generatorConfigurations>
+                                </daemon>
+                            </daemons>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>config</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="target/sbl-dummy-server/logs" />
+                                <copy todir="target/sbl-dummy-server/bin">
+                                    <fileset dir="${jsw.assemble.dir}/bin" />
+                                </copy>
+                                <copy todir="target/sbl-dummy-server/lib">
+                                    <fileset dir="${jsw.assemble.dir}/lib" />
+                                </copy>
+                                <copy todir="target/sbl-dummy-server/conf">
+                                    <fileset dir="${jsw.assemble.dir}/conf" />
+                                </copy>
+                                <copy todir="target/sbl-dummy-server/conf" overwrite="true">
+                                    <fileset dir="target/generated-resources/main" />
+                                </copy>
+                                <chmod dir="target/sbl-dummy-server/bin" includes="**/*" perm="0755" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+</project>
